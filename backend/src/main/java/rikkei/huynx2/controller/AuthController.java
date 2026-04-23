@@ -14,7 +14,7 @@ import rikkei.huynx2.dto.response.RegisterResponseDTO;
 import rikkei.huynx2.service.JwtService;
 
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     
@@ -25,4 +25,6 @@ public class AuthController {
         RegisterResponseDTO reponse = jwtService.register(request);
         return new ResponseEntity<>(reponse, HttpStatus.CREATED);
     }
+
+
 }

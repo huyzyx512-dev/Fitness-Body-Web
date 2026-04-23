@@ -2,7 +2,6 @@ package rikkei.huynx2.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +23,6 @@ public class UserController {
 
     private final UserService userService;
     
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public UserResponseDTO create(@RequestBody UserRequestDTO request) {
         return userService.create(request);
@@ -46,7 +44,6 @@ public class UserController {
         return userService.update(id, request);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         userService.delete(id);

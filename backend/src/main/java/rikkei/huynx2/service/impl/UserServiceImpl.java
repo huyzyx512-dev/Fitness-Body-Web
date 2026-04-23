@@ -2,6 +2,7 @@ package rikkei.huynx2.service.impl;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import rikkei.huynx2.dto.request.UserRequestDTO;
 import rikkei.huynx2.dto.response.UserResponseDTO;
+import rikkei.huynx2.exception.AppException;
+import rikkei.huynx2.exception.ErrorCode;
 import rikkei.huynx2.mapper.UserMapper;
 import rikkei.huynx2.model.Role;
 import rikkei.huynx2.model.User;
@@ -18,23 +21,25 @@ import rikkei.huynx2.service.UserService;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
     @Override
     public UserResponseDTO create(UserRequestDTO request) {
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEnabled(request.getEnabled());
+        Optional<User> user = userRepository.findByUsername(request.getUsername());
 
-        // xử lý roles
+        if (user.isPresent()) throw new AppException(ErrorCode.USER_EXISTED);
         Set<Role> roles = getRolesFromRequest(request.getRoles());
-        user.setRoles(roles);
 
-        return UserMapper.toResponse(userRepository.save(user));
+        return UserMapper.toResponse(
+                userRepository.save(User.builder()
+                        .username(request.getUsername())
+                        .password(request.getPassword())
+                        .enabled(request.getEnabled())
+                        .roles(roles)
+                        .build()));
     }
 
     @Override
@@ -48,14 +53,14 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserResponseDTO findById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return UserMapper.toResponse(user);
     }
 
     @Override
     public UserResponseDTO update(Long id, UserRequestDTO request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         user.setUsername(request.getUsername());
         user.setEnabled(request.getEnabled());
@@ -90,5 +95,5 @@ public class UserServiceImpl implements UserService{
 
         return roles;
     }
-    
+
 }

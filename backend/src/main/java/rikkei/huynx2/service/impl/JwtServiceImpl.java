@@ -2,6 +2,8 @@ package rikkei.huynx2.service.impl;
 
 import rikkei.huynx2.dto.request.RegisterRequestDTO;
 import rikkei.huynx2.dto.response.RegisterResponseDTO;
+import rikkei.huynx2.exception.AppException;
+import rikkei.huynx2.exception.ErrorCode;
 import rikkei.huynx2.model.Role;
 import rikkei.huynx2.model.User;
 import rikkei.huynx2.repository.RoleRepository;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 
+ *
  */
 
 @Service
@@ -32,12 +34,11 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public RegisterResponseDTO register(RegisterRequestDTO requestDTO) {
-
         // Kiểm tra username tồn tại hay chưa
         Optional<User> user = userRepository.findByUsername(requestDTO.getUsername());
 
         if (user.isPresent())
-            throw new RuntimeException("User đã tồn tại");
+            throw new AppException(ErrorCode.USER_EXISTED);
         // Lấy all role trong hệ thống
         List<Role> roles = roleRepository.findAll();
 
@@ -54,7 +55,13 @@ public class JwtServiceImpl implements JwtService {
 
         userRepository.save(newUser);
 
-        return new RegisterResponseDTO(newUser.getUsername(), newUser.getRoles()); 
+        Set<String> rolesName = newUser.getRoles()
+                .stream()
+                .map(Role::getName)
+                .filter("ROLE_USER"::equals)
+                .collect(Collectors.toSet());
+
+        return new RegisterResponseDTO(newUser.getUsername(), rolesName);
     }
 
 }

@@ -52,6 +52,10 @@ public class User {
     @Column(name = "enabled", columnDefinition = "boolean default true")
     private Boolean enabled = true;
 
+    private String email;
+    private String provider; // "google"
+    private String providerId; // sub từ Google
+
     // Tự động gán thời gian khi insert
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
